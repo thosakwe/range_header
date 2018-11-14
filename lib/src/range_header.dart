@@ -1,25 +1,55 @@
+import 'dart:collection';
+import 'parser.dart';
 import 'range_header_item.dart';
 
 /// Represents the contents of a parsed `Range` header.
 abstract class RangeHeader {
   /// Returns an immutable list of the ranges that were parsed.
-  List<RangeHeaderItem> get ranges;
+  UnmodifiableListView<RangeHeaderItem> get items;
+
+  const factory RangeHeader(Iterable<RangeHeaderItem> items,
+      {String rangeUnit}) = _ConstantRangeHeader;
+
+  /// Eliminates any overlapping [items], sorts them, and folds them all into the most efficient representation possible.
+  static UnmodifiableListView<RangeHeaderItem> foldItems(
+      Iterable<RangeHeaderItem> items) {
+    var out = new Set<RangeHeaderItem>();
+
+    for (var item in items) {
+      // Remove any overlapping items, consolidate them.
+      while (out.any((x) => x.overlaps(item))) {
+        var f = out.firstWhere((x) => x.overlaps(item));
+        out.remove(f);
+        item = item.consolidate(f);
+      }
+
+      out.add(item);
+    }
+
+    return new UnmodifiableListView(out.toList()..sort());
+  }
+
+  /// Attempts to parse a [RangeHeader] from its [text] representation.
+  ///
+  /// You can optionally pass a custom list of [allowedRangeUnits].
+  /// The default is `['bytes']`.
+  factory RangeHeader.parse(String text, {Iterable<String> allowedRangeUnits}) {
+    var tokens = scan(text, allowedRangeUnits?.toList() ?? ['bytes']);
+    var parser = new Parser(tokens);
+    return parser.parseRangeHeader();
+  }
 
   /// Returns this header's range unit. Most commonly, this is `bytes`.
   String get rangeUnit;
+}
 
-  /// Creates a representation of this instance suitable for a `Content-Range` header.
-  ///
-  /// This can only be used if the user request only one range. If not, send a
-  /// `multipart/byteranges` response.
-  ///
-  /// Please adhere to the standard!!!
-  /// http://httpwg.org/specs/rfc7233.html
-  String toContentRange([int totalSize]) {
-    if (ranges.length != 1)
-      throw new StateError(
-          'toContentRange only supports when `ranges` has a length of 1.');
-    var denominator = totalSize != null ? totalSize.toString() : '*';
-    return '${ranges[0]}/$denominator';
-  }
+class _ConstantRangeHeader implements RangeHeader {
+  final Iterable<RangeHeaderItem> items_;
+  final String rangeUnit;
+
+  const _ConstantRangeHeader(this.items_, {this.rangeUnit: 'bytes'});
+
+  @override
+  UnmodifiableListView<RangeHeaderItem> get items =>
+      new UnmodifiableListView(items_);
 }

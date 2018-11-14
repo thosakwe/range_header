@@ -1,9 +1,10 @@
+import 'dart:collection';
 import 'range_header.dart';
 import 'range_header_item.dart';
 
 /// Represents the contents of a parsed `Range` header.
-class RangeHeaderImpl extends RangeHeader {
-  List<RangeHeaderItem> _cached;
+class RangeHeaderImpl implements RangeHeader {
+  UnmodifiableListView<RangeHeaderItem> _cached;
   final List<RangeHeaderItem> _items = [];
 
   RangeHeaderImpl(this.rangeUnit, [List<RangeHeaderItem> items = const []]) {
@@ -11,8 +12,8 @@ class RangeHeaderImpl extends RangeHeader {
   }
 
   @override
-  List<RangeHeaderItem> get ranges =>
-      _cached ?? (_cached = new List<RangeHeaderItem>.unmodifiable(_items));
+  UnmodifiableListView<RangeHeaderItem> get items =>
+      _cached ??= new UnmodifiableListView<RangeHeaderItem>(_items);
 
   @override
   final String rangeUnit;

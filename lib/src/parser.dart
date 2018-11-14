@@ -9,7 +9,7 @@ import 'range_header_item.dart';
 final RegExp _rgxInt = new RegExp(r'[0-9]+');
 final RegExp _rgxWs = new RegExp(r'[ \n\r\t]');
 
-enum TokenType { RANGE_UNIT, COMMA, INT, DASH }
+enum TokenType { RANGE_UNIT, COMMA, INT, DASH, EQUALS }
 
 class Token {
   final TokenType type;
@@ -32,6 +32,8 @@ List<Token> scan(String text, List<String> allowedRangeUnits) {
       tokens.add(new Token(TokenType.DASH, scanner.lastSpan));
     else if (scanner.scan(_rgxInt))
       tokens.add(new Token(TokenType.INT, scanner.lastSpan));
+    else if (scanner.scanChar($equal))
+      tokens.add(new Token(TokenType.EQUALS, scanner.lastSpan));
     else {
       bool matched = false;
 
@@ -96,6 +98,8 @@ class Parser {
   RangeHeader parseRangeHeader() {
     if (next(TokenType.RANGE_UNIT)) {
       var unit = current.span.text;
+      next(TokenType.EQUALS); // Consume =, if any.
+
       List<RangeHeaderItem> items = [];
       RangeHeaderItem item = parseHeaderItem();
 

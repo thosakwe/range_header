@@ -1,4 +1,4 @@
-class RangeHeaderParseException implements Exception {
+class RangeHeaderParseException extends FormatException {
   final String message;
 
   RangeHeaderParseException(this.message);
