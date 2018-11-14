@@ -47,7 +47,7 @@ class RangeHeaderTransformer
       len += utf8.encode('Content-Type: $mimeType\r\n').length;
       len += utf8
           .encode(
-              'Content-Range: ${header.rangeUnit} $item/$totalLength\r\n\r\n')
+              'Content-Range: ${header.rangeUnit} ${item.toContentRange(totalLength)}/$totalLength\r\n\r\n')
           .length;
       len += 2; // CRLF
     }
@@ -131,7 +131,7 @@ class RangeHeaderTransformer
         ctrl.add(utf8.encode('--$boundary\r\n'));
         ctrl.add(utf8.encode('Content-Type: $mimeType\r\n'));
         ctrl.add(utf8.encode(
-            'Content-Range: ${header.rangeUnit} $item/$totalLength\r\n\r\n'));
+            'Content-Range: ${header.rangeUnit} ${item.toContentRange(totalLength)}/$totalLength\r\n\r\n'));
         ctrl.add(chunk.takeBytes());
         ctrl.add(const [$cr, $lf]);
 
