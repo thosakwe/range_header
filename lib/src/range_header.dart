@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'parser.dart';
 import 'range_header_item.dart';
+import 'range_header_impl.dart';
 
 /// Represents the contents of a parsed `Range` header.
 abstract class RangeHeader {
@@ -33,10 +34,16 @@ abstract class RangeHeader {
   ///
   /// You can optionally pass a custom list of [allowedRangeUnits].
   /// The default is `['bytes']`.
-  factory RangeHeader.parse(String text, {Iterable<String> allowedRangeUnits}) {
+  ///
+  /// If [fold] is `true`, the items will be folded into the most compact
+  /// possible representation.
+  factory RangeHeader.parse(String text,
+      {Iterable<String> allowedRangeUnits, bool fold: true}) {
     var tokens = scan(text, allowedRangeUnits?.toList() ?? ['bytes']);
     var parser = new Parser(tokens);
-    return parser.parseRangeHeader();
+    var header = parser.parseRangeHeader();
+    var items = foldItems(header.items);
+    return RangeHeaderImpl(header.rangeUnit, items);
   }
 
   /// Returns this header's range unit. Most commonly, this is `bytes`.
