@@ -72,7 +72,7 @@ class RangeHeaderItem implements Comparable<RangeHeaderItem> {
   /// http://httpwg.org/specs/rfc7233.html
 
   String toContentRange([int totalSize]) {
-    var maxIndex = totalSize != null ? (totalSize - 1).toString() : '*';
+    // var maxIndex = totalSize != null ? (totalSize - 1).toString() : '*';
     var s = start > -1 ? start : 0;
 
     if (end == -1) {
@@ -81,7 +81,7 @@ class RangeHeaderItem implements Comparable<RangeHeaderItem> {
             'If the end of this range is unknown, `totalSize` must not be null.');
       } else {
         // if (end == totalSize - 1) {
-        return '$s-${maxIndex -1}/$totalSize';
+        return '$s-${totalSize - 1}/$totalSize';
       }
     }
 
