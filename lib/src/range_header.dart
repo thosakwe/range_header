@@ -42,6 +42,7 @@ abstract class RangeHeader {
     var tokens = scan(text, allowedRangeUnits?.toList() ?? ['bytes']);
     var parser = new Parser(tokens);
     var header = parser.parseRangeHeader();
+    if (header == null) return null;
     var items = foldItems(header.items);
     return RangeHeaderImpl(header.rangeUnit, items);
   }
