@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show HttpHeaders, HttpStatus;
+import 'dart:typed_data';
 import 'package:angel_framework/angel_framework.dart';
 import 'package:angel_framework/http.dart';
 import 'package:angel_static/angel_static.dart';
@@ -51,7 +52,7 @@ class _RangingVirtualDirectory extends VirtualDirectory {
 
       if (header.items.length == 1) {
         var item = header.items[0];
-        Stream<List<int>> stream;
+        Stream<Uint8List> stream;
         int len = 0, total = await file.length();
 
         if (item.start == -1) {
@@ -79,7 +80,7 @@ class _RangingVirtualDirectory extends VirtualDirectory {
         res.headers[HttpHeaders.contentLengthHeader] = len.toString();
         res.headers[HttpHeaders.contentRangeHeader] =
             'bytes ' + item.toContentRange(total);
-        await stream.pipe(res);
+        await stream.cast<List<int>>().pipe(res);
         return false;
       } else {
         var totalFileSize = await file.length();
@@ -93,7 +94,11 @@ class _RangingVirtualDirectory extends VirtualDirectory {
             transformer.computeContentLength(totalFileSize).toString();
         res.contentType = new MediaType(
             'multipart', 'byteranges', {'boundary': transformer.boundary});
-        await file.openRead().transform(transformer).pipe(res);
+        await file
+            .openRead()
+            .cast<List<int>>()
+            .transform(transformer)
+            .pipe(res);
         return false;
       }
     } else {

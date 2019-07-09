@@ -20,5 +20,9 @@ handleRequest(HttpRequest request) async {
   // Serve the file
   var transformer =
       new RangeHeaderTransformer(header, 'video/mp4', await file.length());
-  await file.openRead().transform(transformer).pipe(request.response);
+  await file
+      .openRead()
+      .cast<List<int>>()
+      .transform(transformer)
+      .pipe(request.response);
 }
